@@ -16,11 +16,6 @@ type LRUCache[T comparable, V interface{}] interface {
 
 type Key interface{}
 
-type entry struct {
-	key   Key
-	value interface{}
-}
-
 // LRU implementation
 type LRU[T comparable, V interface{}] struct {
 	ll         *list.List
@@ -91,9 +86,7 @@ func (L *LRU[T, V]) Remove(key T) {
 	// no need to change internal order
 	elem, ok := L.cache[key]
 	if ok {
-		rmKey := elem.Value.(*entry).key
-		delete(L.cache, rmKey.(T))
-		L.ll.Remove(elem)
+		L.removeElement(elem)
 	}
 	return
 }
@@ -105,10 +98,7 @@ func (L *LRU[T, V]) RemoveOldest() {
 	// remove the oldest elem from both hashtable and linked-list.
 	// if both are empty just return
 	elem := L.ll.Back()
-	rmKey := elem.Value.(*entry).key
-
-	delete(L.cache, rmKey.(T))
-	L.ll.Remove(elem)
+	L.removeElement(elem)
 }
 
 func (L *LRU[T, V]) Peek(key T) (value V, evicted bool) {
@@ -122,4 +112,15 @@ func (L *LRU[T, V]) Peek(key T) (value V, evicted bool) {
 		return elem.Value.(*entry).value.(V), ok
 	}
 	return
+}
+
+type entry struct {
+	key   Key
+	value interface{}
+}
+
+func (L *LRU[T, V]) removeElement(elem *list.Element) {
+	rmKey := elem.Value.(*entry).key
+	delete(L.cache, rmKey.(T))
+	L.ll.Remove(elem)
 }
