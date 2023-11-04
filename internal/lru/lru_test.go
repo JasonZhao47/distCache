@@ -1,7 +1,7 @@
-package cache_test
+package lru_test
 
 import (
-	"github.com/jasonzhao47/distCache/cache"
+	"github.com/jasonzhao47/distCache/internal/lru"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -10,15 +10,15 @@ import (
 func TestLRU_Peek(t *testing.T) {
 	testCases := []struct {
 		name         string
-		mock         func() cache.LRUCache[int, int]
+		mock         func() lru.LRUCache[int, int]
 		key          int
 		value        int
 		isKeyPresent bool
 	}{
 		{
 			name: "Should get value",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -35,8 +35,8 @@ func TestLRU_Peek(t *testing.T) {
 		},
 		{
 			name: "Should get value without moving internal order",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -54,8 +54,8 @@ func TestLRU_Peek(t *testing.T) {
 		},
 		{
 			name: "Should not get value when not present",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -85,15 +85,15 @@ func TestLRU_Peek(t *testing.T) {
 func TestLRU_Remove(t *testing.T) {
 	testCases := []struct {
 		name         string
-		mock         func() cache.LRUCache[int, int]
+		mock         func() lru.LRUCache[int, int]
 		key          int
 		value        int
 		isKeyPresent bool
 	}{
 		{
 			name: "Should remove key & value",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -110,8 +110,8 @@ func TestLRU_Remove(t *testing.T) {
 		},
 		{
 			name: "Should not remove value when not present",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -143,14 +143,14 @@ func TestLRUCache_RemoveOldest(t *testing.T) {
 	testCases := []struct {
 		name string
 		// no need to mock anything here
-		mock         func() cache.LRUCache[int, int]
+		mock         func() lru.LRUCache[int, int]
 		key          int
 		isKeyPresent bool
 	}{
 		{
-			name: "Should not remove anything when cache is empty",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			name: "Should not remove anything when lru is empty",
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				return lruCache
 			},
@@ -159,8 +159,8 @@ func TestLRUCache_RemoveOldest(t *testing.T) {
 		},
 		{
 			name: "Pop out element",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 8777)
@@ -190,15 +190,15 @@ func TestLRUCache_RemoveOldest(t *testing.T) {
 func TestLRUCache_Get(t *testing.T) {
 	testCases := []struct {
 		name    string
-		mock    func() cache.LRUCache[int, int]
+		mock    func() lru.LRUCache[int, int]
 		key     int
 		value   int
 		present bool
 	}{
 		{
 			name: "Should get an existing element and set to recently used",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				lruCache.Add(1235, 1928)
 				return lruCache
@@ -209,8 +209,8 @@ func TestLRUCache_Get(t *testing.T) {
 		},
 		{
 			name: "Should not get element when not existing",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				lruCache.Add(1235, 1928)
 				return lruCache
@@ -234,14 +234,14 @@ func TestLRUCache_Get(t *testing.T) {
 func TestLRUCache_Add(t *testing.T) {
 	testCases := []struct {
 		name         string
-		mock         func() cache.LRUCache[int, int]
+		mock         func() lru.LRUCache[int, int]
 		recentlyUsed int
 		isInserted   bool
 	}{
 		{
 			name: "Should add element as most recently used",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				lruCache.Add(1123, 1928)
 				return lruCache
@@ -251,8 +251,8 @@ func TestLRUCache_Add(t *testing.T) {
 		},
 		{
 			name: "Should update element used when key exists",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 1; i <= 2; i++ {
 					lruCache.Add(i, 917)
@@ -264,8 +264,8 @@ func TestLRUCache_Add(t *testing.T) {
 		},
 		{
 			name: "Should add and remove oldest if maxEntry exceeds",
-			mock: func() cache.LRUCache[int, int] {
-				lruCache, err := cache.New[int, int](2)
+			mock: func() lru.LRUCache[int, int] {
+				lruCache, err := lru.New[int, int](2)
 				require.NoError(t, err)
 				for i := 3; i <= 4; i++ {
 					lruCache.Add(i, 917)

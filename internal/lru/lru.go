@@ -1,4 +1,4 @@
-package cache
+package lru
 
 import (
 	"container/list"
@@ -36,11 +36,11 @@ func (L *LRU[T, V]) Len() int {
 }
 
 func (L *LRU[T, V]) Add(key T, value V) {
-	// check if cache exists
+	// check if lru exists
 	if L.cache == nil {
 		return
 	}
-	// check if key is inside cache
+	// check if key is inside lru
 	elem, ok := L.cache[key]
 	if !ok {
 		// if not, add and move to front
@@ -62,11 +62,11 @@ func (L *LRU[T, V]) Add(key T, value V) {
 }
 
 func (L *LRU[T, V]) Get(key T) (value V, evicted bool) {
-	// check if cache exists
+	// check if lru exists
 	if L.cache == nil {
 		return
 	}
-	// check if t is in cache
+	// check if t is in lru
 	elem, ok := L.cache[key]
 	if ok {
 		L.ll.MoveToFront(elem)
@@ -76,7 +76,7 @@ func (L *LRU[T, V]) Get(key T) (value V, evicted bool) {
 }
 
 func (L *LRU[T, V]) Remove(key T) {
-	// check if cache exists
+	// check if lru exists
 	if L.cache == nil {
 		return
 	}
@@ -102,11 +102,11 @@ func (L *LRU[T, V]) RemoveOldest() {
 }
 
 func (L *LRU[T, V]) Peek(key T) (value V, evicted bool) {
-	// if cache is nil, return default values
+	// if lru is nil, return default values
 	if L.cache == nil {
 		return
 	}
-	// peek without changing cache's order
+	// peek without changing lru's order
 	elem, ok := L.cache[key]
 	if ok {
 		return elem.Value.(*entry).value.(V), ok
