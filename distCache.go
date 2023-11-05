@@ -14,23 +14,24 @@ type cache[T comparable, V interface{}] struct {
 	cacheBytes int
 }
 
-func (c *cache[T, V]) add(key T, value V) error {
+func (c *cache[T, V]) add(key T, value V) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if c.lru == nil {
 		lruCache, err := lru.New[T, V](c.cacheBytes)
 		if err != nil {
-			return err
+			panic(err)
 		}
+
 		c.lru = lruCache
 	}
 
 	c.lru.Add(key, value)
-	return nil
+	return
 }
 
-func (c *cache[int, interface{}]) get(key int) (value int, evicted bool) {
+func (c *cache[T, V]) get(key T) (value V, evicted bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -39,7 +40,13 @@ func (c *cache[int, interface{}]) get(key int) (value int, evicted bool) {
 	}
 
 	if v, ok := c.lru.Get(key); ok {
-		return v.(int), ok
+		return v, ok
 	}
 	return
+}
+
+func (c *cache[T, V]) removeOldest() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.lru.RemoveOldest()
 }
