@@ -7,6 +7,7 @@ import (
 
 // question: how to test concurrency?
 
+// cache: wrapper for LRUCache, thread safe
 type cache[T comparable, V interface{}] struct {
 	lru        lru.LRUCache[T, V]
 	mu         sync.Mutex
