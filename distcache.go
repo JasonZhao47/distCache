@@ -14,6 +14,11 @@ type GroupCache struct {
 	cache *cache[byte, []byte]
 }
 
+func (c *GroupCache) GetFromLocal(key byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (c *GroupCache) GetFromPeer(peerName string, key byte) ([]byte, error) {
 	//TODO implement me
 	panic("implement me")
