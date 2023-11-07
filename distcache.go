@@ -7,19 +7,19 @@ import (
 )
 
 type GroupCache struct {
-	getter func(byte) ([]byte, error)
+	getter func(byte, []byte) error
 	// getter func - callback function for data source
 	// get the real data out from it
 	name  string
-	cache *cache[byte, []byte]
+	cache cache[byte, ByteView]
 }
 
-func (c *GroupCache) GetFromLocal(key byte) ([]byte, error) {
+func (c *GroupCache) GetFromLocal(key byte) (ByteView, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (c *GroupCache) GetFromPeer(peerName string, key byte) ([]byte, error) {
+func (c *GroupCache) GetFromPeer(peerName string, key byte) (ByteView, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -34,12 +34,12 @@ var (
 // DistCache question: how to test concurrency?
 type DistCache interface {
 	GetGroup(name string) (*GroupCache, error)
-	Get(name string, key byte) ([]byte, error)
-	GetFromPeer(peerName string, key byte) ([]byte, error)
-	GetFromLocal(key byte) ([]byte, error)
+	Get(name string, key byte) (ByteView, error)
+	GetFromPeer(peerName string, key byte) (ByteView, error)
+	GetFromLocal(key byte) (ByteView, error)
 }
 
-func NewGroups(getter func(byte) ([]byte, error),
+func NewGroups(getter func(byte, []byte) error,
 	name string, cacheBytes int) DistCache {
 	if getter == nil {
 		panic("empty data getter")
@@ -49,7 +49,7 @@ func NewGroups(getter func(byte) ([]byte, error),
 	gc := &GroupCache{
 		getter: getter,
 		name:   name,
-		cache:  &cache[byte, []byte]{cacheBytes: cacheBytes},
+		cache:  cache[byte, ByteView]{cacheBytes: cacheBytes},
 	}
 	groups[name] = gc
 	return gc
@@ -65,29 +65,23 @@ func (c *GroupCache) GetGroup(name string) (*GroupCache, error) {
 	return group, nil
 }
 
-func (c *GroupCache) Get(name string, key byte) ([]byte, error) {
-	if c.cache == nil {
-		return nil, ErrInternalError
-	}
+func (c *GroupCache) Get(name string, key byte) (ByteView, error) {
 	g, err := c.GetGroup(name)
 	if err != nil {
-		return []byte{}, err
+		return NewByteView([]byte{}), err
 	}
 	val, ok := g.cache.get(key)
 	if !ok {
 		// val, peerOk := GetFromPeer()
 		// if !peerOk
-		data, err := c.getter(key)
-		if err != nil {
-			return nil, err
-		}
-		c.cache.add(key, data)
+		// How to use this getter?
+		//err := c.getter(key, data)
+		//if err != nil {
+		//	return nil, err
+		//}
+		//c.cache.add(key, data)
+		// problem: determine which node to emplace this data?
 	}
-	// 1. found in cache
-	// 2. not found in cache
-	// a. get from peer
-	// b. not found - get from source
-	// i set cache
 	return val, nil
 }
 
