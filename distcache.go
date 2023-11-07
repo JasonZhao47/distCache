@@ -3,6 +3,7 @@ package distCache
 import (
 	"errors"
 	"github.com/jasonzhao47/distCache/internal/lru"
+	"log"
 	"sync"
 )
 
@@ -24,12 +25,17 @@ type GroupCache struct {
 	cache cache[byte, ByteView]
 }
 
-func (c *GroupCache) GetFromLocal(key byte) (ByteView, error) {
-	//TODO implement me
-	panic("implement me")
+func (c *GroupCache) loadFromLocal(key byte) (ByteView, error) {
+	val, err := c.getter.Get(key)
+	if err != nil {
+		return NewByteView([]byte{}), err
+	}
+	buf := NewByteView(val)
+	c.cache.add(key, buf)
+	return buf, nil
 }
 
-func (c *GroupCache) GetFromPeer(peerName string, key byte) (ByteView, error) {
+func (c *GroupCache) getFromPeer(peerName string, key byte) (ByteView, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -45,8 +51,6 @@ var (
 type DistCache interface {
 	GetGroup(name string) (*GroupCache, error)
 	Get(name string, key byte) (ByteView, error)
-	GetFromPeer(peerName string, key byte) (ByteView, error)
-	GetFromLocal(key byte) (ByteView, error)
 }
 
 func NewGroups(getter Getter, name string, cacheBytes int) DistCache {
@@ -81,16 +85,18 @@ func (c *GroupCache) Get(name string, key byte) (ByteView, error) {
 	}
 	val, ok := g.cache.get(key)
 	if !ok {
+		log.Printf("[Cache] not hit %v\n", val)
 		// val, peerOk := GetFromPeer()
 		// if !peerOk
 		// How to use this getter?
-		data, err := c.getter.Get(key)
+		data, err := c.loadFromLocal(key)
 		if err != nil {
 			return nil, err
 		}
-		c.cache.add(key, NewByteView(data))
+		return data, nil
 		// problem: determine which node to emplace this data?
 	}
+	log.Printf("[Cache] hit %v\n", val)
 	return val, nil
 }
 
