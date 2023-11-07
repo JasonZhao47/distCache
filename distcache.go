@@ -6,8 +6,19 @@ import (
 	"sync"
 )
 
+type Getter interface {
+	Get(byte) ([]byte, error)
+}
+
+type GetterFunc func(key byte) ([]byte, error)
+
+func (fn GetterFunc) Get(key byte) ([]byte, error) {
+	data, err := fn(key)
+	return data, err
+}
+
 type GroupCache struct {
-	getter func(byte, []byte) error
+	getter Getter
 	// getter func - callback function for data source
 	// get the real data out from it
 	name  string
@@ -39,8 +50,7 @@ type DistCache interface {
 	GetFromLocal(key byte) (ByteView, error)
 }
 
-func NewGroups(getter func(byte, []byte) error,
-	name string, cacheBytes int) DistCache {
+func NewGroups(getter Getter, name string, cacheBytes int) DistCache {
 	if getter == nil {
 		panic("empty data getter")
 	}
@@ -75,11 +85,11 @@ func (c *GroupCache) Get(name string, key byte) (ByteView, error) {
 		// val, peerOk := GetFromPeer()
 		// if !peerOk
 		// How to use this getter?
-		//err := c.getter(key, data)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//c.cache.add(key, data)
+		data, err := c.getter.Get(key)
+		if err != nil {
+			return nil, err
+		}
+		c.cache.add(key, NewByteView(data))
 		// problem: determine which node to emplace this data?
 	}
 	return val, nil
