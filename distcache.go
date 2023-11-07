@@ -13,8 +13,7 @@ type Getter interface {
 type GetterFunc func(key byte) ([]byte, error)
 
 func (fn GetterFunc) Get(key byte) ([]byte, error) {
-	data, err := fn(key)
-	return data, err
+	return fn(key)
 }
 
 type GroupCache struct {
