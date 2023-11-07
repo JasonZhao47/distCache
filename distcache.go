@@ -14,6 +14,11 @@ type GroupCache struct {
 	cache *cache[byte, []byte]
 }
 
+func (c *GroupCache) GetFromPeer(peerName string, key byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 var (
 	ErrInternalError = errors.New("内部错误")
 	// global variable - shared memory!
@@ -25,6 +30,8 @@ var (
 type DistCache interface {
 	GetGroup(name string) (*GroupCache, error)
 	Get(name string, key byte) ([]byte, error)
+	GetFromPeer(peerName string, key byte) ([]byte, error)
+	GetFromLocal(key byte) ([]byte, error)
 }
 
 func NewGroups(getter func(byte) ([]byte, error),
