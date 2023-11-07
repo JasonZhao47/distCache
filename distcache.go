@@ -25,7 +25,7 @@ func (c *GroupCache) GetFromPeer(peerName string, key byte) ([]byte, error) {
 }
 
 var (
-	ErrInternalError = errors.New("内部错误")
+	ErrInternalError = errors.New("Internal error")
 	// global variable - shared memory!
 	groups map[string]*GroupCache
 	mu     sync.RWMutex
