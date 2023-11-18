@@ -8,12 +8,12 @@ import (
 )
 
 type Getter interface {
-	Get(byte) ([]byte, error)
+	Get(string) ([]byte, error)
 }
 
-type GetterFunc func(key byte) ([]byte, error)
+type GetterFunc func(key string) ([]byte, error)
 
-func (fn GetterFunc) Get(key byte) ([]byte, error) {
+func (fn GetterFunc) Get(key string) ([]byte, error) {
 	return fn(key)
 }
 
@@ -22,10 +22,10 @@ type GroupCache struct {
 	// getter func - callback function for data source
 	// get the real data out from it
 	name  string
-	cache cache[byte, ByteView]
+	cache cache[string, ByteView]
 }
 
-func (c *GroupCache) loadFromLocal(key byte) (ByteView, error) {
+func (c *GroupCache) loadFromLocal(key string) (ByteView, error) {
 	val, err := c.getter.Get(key)
 	if err != nil {
 		return NewByteView([]byte{}), err
@@ -49,8 +49,7 @@ var (
 
 // DistCache question: how to test concurrency?
 type DistCache interface {
-	GetGroup(name string) (*GroupCache, error)
-	Get(name string, key byte) (ByteView, error)
+	Get(name string, key string) (ByteView, error)
 }
 
 func NewGroups(getter Getter, name string, cacheBytes int) DistCache {
@@ -62,13 +61,13 @@ func NewGroups(getter Getter, name string, cacheBytes int) DistCache {
 	gc := &GroupCache{
 		getter: getter,
 		name:   name,
-		cache:  cache[byte, ByteView]{cacheBytes: cacheBytes},
+		cache:  cache[string, ByteView]{cacheBytes: cacheBytes},
 	}
 	groups[name] = gc
 	return gc
 }
 
-func (c *GroupCache) GetGroup(name string) (*GroupCache, error) {
+func GetGroup(name string) (*GroupCache, error) {
 	mu.RLock()
 	defer mu.RUnlock()
 	group, ok := groups[name]
@@ -78,8 +77,8 @@ func (c *GroupCache) GetGroup(name string) (*GroupCache, error) {
 	return group, nil
 }
 
-func (c *GroupCache) Get(name string, key byte) (ByteView, error) {
-	g, err := c.GetGroup(name)
+func (c *GroupCache) Get(name string, key string) (ByteView, error) {
+	g, err := GetGroup(name)
 	if err != nil {
 		return NewByteView([]byte{}), err
 	}
