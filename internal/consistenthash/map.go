@@ -15,10 +15,10 @@ type Map struct {
 	hashMap  map[int]string
 }
 
-func NewMap(replicas int) *Map {
+func NewMap(replicas int, fn Hash) *Map {
 	m := &Map{
 		replicas: replicas,
-		hash:     fn,
+		hashFn:   fn,
 		hashMap:  make(map[int]string),
 	}
 	if m.hashFn == nil {
@@ -33,7 +33,7 @@ func NewMap(replicas int) *Map {
 func (m *Map) Add(keys ...string) {
 	for _, key := range keys {
 		for i := 0; i < m.replicas; i++ {
-			hash := int(m.hash([]byte(strconv.Itoa(i) + key)))
+			hash := int(m.hashFn([]byte(strconv.Itoa(i) + key)))
 			m.keys = append(m.keys, hash)
 			m.hashMap[hash] = key
 		}
@@ -46,7 +46,7 @@ func (m *Map) Get(key string) string {
 		return ""
 	}
 
-	hash := int(m.hash([]byte(key)))
+	hash := int(m.hashFn([]byte(key)))
 	idx := sort.Search(len(m.keys), func(i int) bool {
 		return m.keys[i] >= hash
 	})
